@@ -1,4 +1,4 @@
 name = "behmfit-coach-bridge"
 main = "src/worker.js"
 compatibility_date = "2025-11-11"
-account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+account_id = "b00e0306a2360027fbf3425903c67fb8"
