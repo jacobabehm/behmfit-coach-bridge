@@ -19,7 +19,7 @@ jobs:
           ls -la src || true
 
       # official Cloudflare Wrangler action
-      - uses: cloudflare/wrangler-action@3
+      - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
