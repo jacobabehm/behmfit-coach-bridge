@@ -2,3 +2,6 @@ name = "behmfit-coach-bridge"
 main = "src/worker.js"
 compatibility_date = "2025-11-11"
 account_id = "b00e0306a2360027fbf3425903c67fb8"
+
+[vars]
+COACH_PATH_ID = "7d3e62e92f1c4a53b8bcae003e21ad84f77c8e8f6c9a41f2a41d9b705aa7f5b0"
