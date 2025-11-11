@@ -1,9 +1,26 @@
 export default {
   async fetch(req, env) {
     const u = new URL(req.url);
-    if (!u.pathname.startsWith(`/coach/${env.COACH_PATH_ID}/upsert-activity`)) {
-      return new Response("Not found", { status: 404 });
+    const pathId = env.COACH_PATH_ID;
+
+    // Health probe (no Airtable call)
+    if (u.pathname === `/coach/${pathId}/health`) {
+      return new Response(JSON.stringify({ ok: true, pathIdMatched: true }), {
+        status: 200, headers: { "content-type": "application/json" }
+      });
     }
+
+    // Route must match exactly
+    const okPath = u.pathname.startsWith(`/coach/${pathId}/upsert-activity`);
+    if (!okPath) {
+      return new Response(JSON.stringify({
+        ok: false,
+        reason: "route_mismatch",
+        expectedPrefix: `/coach/${pathId}/upsert-activity`,
+        got: u.pathname
+      }), { status: 404, headers: { "content-type": "application/json" } });
+    }
+
     const q = u.searchParams;
     const fields = {
       activity_id: String(q.get("activity_id") || ""),
@@ -14,7 +31,11 @@ export default {
       elapsed_s: q.get("elapsed_s") ? Number(q.get("elapsed_s")) : null,
       avg_hr: q.get("avg_hr") ? Number(q.get("avg_hr")) : null
     };
-    if (!fields.activity_id) return new Response("Missing activity_id", { status: 400 });
+    if (!fields.activity_id) {
+      return new Response(JSON.stringify({ ok:false, error:"Missing activity_id"}), {
+        status: 400, headers: { "content-type":"application/json" }
+      });
+    }
 
     const res = await fetch(`https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/activities`, {
       method: "POST",
@@ -29,7 +50,6 @@ export default {
     });
 
     const text = await res.text();
-    return new Response(text, { status: res.status, headers: { "content-type": "application/json" } });
+    return new Response(text, { status: res.status, headers: { "content-type":"application/json" } });
   }
 }
-
