@@ -13,14 +13,18 @@ jobs:
 
       - name: Show repo tree
         run: |
-          echo "--- root ---"; pwd; ls -la
-          echo "--- src ---"; ls -la src || true
-          echo "--- wrangler.toml ---"; cat wrangler.toml || true
+          echo "--- root ---"
+          pwd
+          ls -la
+          echo "--- src ---"
+          ls -la src || true
+          echo "--- wrangler.toml ---"
+          cat wrangler.toml || true
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install Wrangler v4
         run: npm i -g wrangler@4
@@ -29,16 +33,16 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          npx wrangler --version
-          npx wrangler whoami || true
+          wrangler --version
+          wrangler whoami || true
 
-      # 1) First deploy creates the script on Cloudflare (no secrets yet)
+      # 1️⃣ First deploy (creates the Worker script)
       - name: Initial deploy (create script)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler deploy --verbose
+        run: wrangler deploy
 
-      # 2) Now that the script exists, set secrets on that script
+      # 2️⃣ Set Cloudflare secrets (after Worker exists)
       - name: Set Cloudflare secrets
         env:
           CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -46,13 +50,13 @@ jobs:
           AIRTABLE_BASE_ID:      ${{ secrets.AIRTABLE_BASE_ID }}
           COACH_PATH_ID:         ${{ secrets.COACH_PATH_ID }}
         run: |
-          echo -n "$AIRTABLE_API_KEY" | npx wrangler secret put AIRTABLE_API_KEY --name behmfit-coach-bridge
-          echo -n "$AIRTABLE_BASE_ID" | npx wrangler secret put AIRTABLE_BASE_ID --name behmfit-coach-bridge
-          echo -n "$COACH_PATH_ID"    | npx wrangler secret put COACH_PATH_ID    --name behmfit-coach-bridge || true
-          npx wrangler secret list --name behmfit-coach-bridge || true
+          echo -n "$AIRTABLE_API_KEY" | wrangler secret put AIRTABLE_API_KEY --name behmfit-coach-bridge
+          echo -n "$AIRTABLE_BASE_ID" | wrangler secret put AIRTABLE_BASE_ID --name behmfit-coach-bridge
+          echo -n "$COACH_PATH_ID"    | wrangler secret put COACH_PATH_ID    --name behmfit-coach-bridge || true
+          wrangler secret list --name behmfit-coach-bridge || true
 
-      # 3) Final deploy picks up the secrets
+      # 3️⃣ Final deploy (uses secrets)
       - name: Final deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler deploy --verbose
+        run: wrangler deploy
