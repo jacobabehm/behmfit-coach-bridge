@@ -3,14 +3,25 @@ export default {
     const u = new URL(req.url);
     const pathId = env.COACH_PATH_ID;
 
-    // Health probe (no Airtable call)
+    // Health
     if (u.pathname === `/coach/${pathId}/health`) {
       return new Response(JSON.stringify({ ok: true, pathIdMatched: true }), {
         status: 200, headers: { "content-type": "application/json" }
       });
     }
 
-    // Route must match exactly
+    // Probe Airtable connectivity (read 1 record from 'activities')
+    if (u.pathname === `/coach/${pathId}/probe-activities`) {
+      const r = await fetch(`https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/activities?maxRecords=1`, {
+        headers: { "Authorization": `Bearer ${env.AIRTABLE_API_KEY}` }
+      });
+      const body = await r.text();
+      return new Response(JSON.stringify({ upstream_status: r.status, body }), {
+        status: 200, headers: { "content-type": "application/json" }
+      });
+    }
+
+    // Upsert activity (GET → Airtable write)
     const okPath = u.pathname.startsWith(`/coach/${pathId}/upsert-activity`);
     if (!okPath) {
       return new Response(JSON.stringify({
@@ -37,7 +48,7 @@ export default {
       });
     }
 
-    const res = await fetch(`https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/activities`, {
+    const r = await fetch(`https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/activities`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${env.AIRTABLE_API_KEY}`,
@@ -49,7 +60,7 @@ export default {
       })
     });
 
-    const text = await res.text();
-    return new Response(text, { status: res.status, headers: { "content-type":"application/json" } });
+    const text = await r.text();
+    return new Response(text, { status: r.status, headers: { "content-type":"application/json" } });
   }
 }
