@@ -1,3 +1,0 @@
-name = "behmfit-coach-bridge"
-main = "src/worker.js"
-compatibility_date = "2025-11-11"
