@@ -1,0 +1,43 @@
+name: Coach Bridge Smoke Test
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health
+        run: |
+          curl -sS "${{ secrets.WORKER_URL }}/coach/${{ secrets.COACH_PATH_ID }}/health" -D /tmp/h0.txt -o /tmp/b0.txt || true
+          echo "---- health headers ----"; cat /tmp/h0.txt
+          echo "---- health body ----";    cat /tmp/b0.txt
+
+      - name: Probe (activities)
+        run: |
+          curl -sS "${{ secrets.WORKER_URL }}/coach/${{ secrets.COACH_PATH_ID }}/probe-activities" -D /tmp/h1.txt -o /tmp/b1.txt || true
+          echo "---- probe headers ----"; cat /tmp/h1.txt
+          echo "---- probe body ----";    cat /tmp/b1.txt
+
+      - name: Probe (Activities override)
+        run: |
+          curl -sS "${{ secrets.WORKER_URL }}/coach/${{ secrets.COACH_PATH_ID }}/probe-activities?table=Activities" -D /tmp/h2.txt -o /tmp/b2.txt || true
+          echo "---- probe(Activities) headers ----"; cat /tmp/h2.txt
+          echo "---- probe(Activities) body ----";    cat /tmp/b2.txt
+
+      - name: Upsert key only (activities)
+        run: |
+          curl -sS "${{ secrets.WORKER_URL }}/coach/${{ secrets.COACH_PATH_ID }}/upsert-activity?activity_id=CHATGPT-KEY-ONLY" -D /tmp/h3.txt -o /tmp/b3.txt || true
+          echo "---- upsert key-only headers ----"; cat /tmp/h3.txt
+          echo "---- upsert key-only body ----";    cat /tmp/b3.txt
+
+      - name: Upsert key only (Activities override)
+        run: |
+          curl -sS "${{ secrets.WORKER_URL }}/coach/${{ secrets.COACH_PATH_ID }}/upsert-activity?table=Activities&activity_id=CHATGPT-KEY-ONLY" -D /tmp/h4.txt -o /tmp/b4.txt || true
+          echo "---- upsert key-only (Activities) headers ----"; cat /tmp/h4.txt
+          echo "---- upsert key-only (Activities) body ----";    cat /tmp/b4.txt
+
+      - name: Full upsert (Activities override)
+        run: |
+          curl -sS "${{ secrets.WORKER_URL }}/coach/${{ secrets.COACH_PATH_ID }}/upsert-activity?table=Activities&activity_id=CHATGPT-TEST-123&name=Bridge%20Write&type=Run&start_iso=2025-11-11T20:00:00Z&distance_m=5000&elapsed_s=1500&avg_hr=148" -D /tmp/h5.txt -o /tmp/b5.txt || true
+          echo "---- full upsert headers ----"; cat /tmp/h5.txt
+          echo "---- full upsert body ----";    cat /tmp/b5.txt
