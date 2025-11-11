@@ -7,11 +7,15 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Checkout code
       - uses: actions/checkout@v4
 
+      # 2. Show repo structure for debugging
       - name: Show repo tree
         run: |
+          echo "--- repository root ---"
           pwd
           ls -la
           echo "--- src ---"
@@ -19,22 +23,17 @@ jobs:
           echo "--- wrangler.toml ---"
           cat wrangler.toml || true
 
+      # 3. Install Node + Wrangler CLI
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install wrangler
+      - name: Install Wrangler
         run: npm i -g wrangler@3
 
-      - name: Wrangler version / whoami
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          wrangler --version
-          wrangler whoami || true
-
-      - name: Deploy
+      # 4. Push secrets to Cloudflare (these become Worker env vars)
+      - name: Set Cloudflare secrets
         env:
           CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -42,4 +41,21 @@ jobs:
           AIRTABLE_BASE_ID:      ${{ secrets.AIRTABLE_BASE_ID }}
           COACH_PATH_ID:         ${{ secrets.COACH_PATH_ID }}
         run: |
-          wrangler deploy --account-id "$CLOUDFLARE_ACCOUNT_ID"
+          printf "%s" "$AIRTABLE_API_KEY" | wrangler secret put AIRTABLE_API_KEY
+          printf "%s" "$AIRTABLE_BASE_ID" | wrangler secret put AIRTABLE_BASE_ID
+          printf "%s" "$COACH_PATH_ID"    | wrangler secret put COACH_PATH_ID || true
+          wrangler secret list || true
+
+      # 5. Verify Wrangler setup
+      - name: Wrangler info
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          wrangler --version
+          wrangler whoami || true
+
+      # 6. Deploy the Worker
+      - name: Deploy to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: wrangler deploy --verbose
