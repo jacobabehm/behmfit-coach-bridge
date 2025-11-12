@@ -1,7 +1,11 @@
-name = "behmfit-coach-bridge"
+name = "behmfit-sync"
 main = "src/worker.js"
-compatibility_date = "2025-11-11"
-account_id = "b00e0306a2360027fbf3425903c67fb8"
+compatibility_date = "2024-01-01"
 
-[vars]
-COACH_PATH_ID = "7d3e62e92f1c4a53b8bcae003e21ad84f77c8e8f6c9a41f2a41d9b705aa7f5b0"
+[[kv_namespaces]]
+binding = "JOBS"
+id = "YOUR_JOBS_NAMESPACE_ID"
+
+[[kv_namespaces]]
+binding = "TOKENS"
+id = "YOUR_TOKENS_NAMESPACE_ID"
