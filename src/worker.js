@@ -2,7 +2,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // simple proof endpoints
+    if (url.pathname === "/__health") {
+      return new Response("ok", { headers: { "content-type": "text/plain" } });
+    }
+
     if (url.pathname === "/proof/read") {
       const sample = await env.JOBS.get("last_write", "json");
       return new Response(JSON.stringify({ ok: true, last_write: sample ?? null }, null, 2), {
